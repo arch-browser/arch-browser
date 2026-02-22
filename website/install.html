@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Install Arch Browser — Arch Linux</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html" class="logo">Arch Browser</a>
+      <a href="install.html" class="nav-link">Install</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-header">
+      <h1>Install Arch Browser</h1>
+      <p>Arch Linux (x86_64) only — Qt5 and QtWebEngine required</p>
+    </section>
+
+    <section class="install-section">
+      <h2>1. Install dependencies</h2>
+      <pre><code>sudo pacman -S --needed base-devel cmake ninja qt5-base qt5-webengine</code></pre>
+    </section>
+
+    <section class="install-section">
+      <h2>2. Clone or download the source</h2>
+      <pre><code>git clone https://github.com/arch-browser/arch-browser.git
+cd arch-browser</code></pre>
+      <p class="hint">Or with SSH: <code>git clone git@github.com:arch-browser/arch-browser.git</code></p>
+    </section>
+
+    <section class="install-section">
+      <h2>3. Build and install via PKGBUILD</h2>
+      <pre><code>./make-tarball.sh
+makepkg -si</code></pre>
+      <p class="hint">-s installs dependencies. -i installs the package.</p>
+    </section>
+
+    <section class="install-section alt">
+      <h2>Alternative: build from source (CMake)</h2>
+      <pre><code>cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+sudo cmake --install build</code></pre>
+    </section>
+
+    <section class="install-section">
+      <h2>Run Arch Browser</h2>
+      <pre><code>arch-browser</code></pre>
+      <p>Or launch from your application menu (search for Arch Browser).</p>
+    </section>
+
+    <section class="install-section alt">
+      <h2>Uninstall</h2>
+      <pre><code>./uninstall-arch-browser.sh</code></pre>
+      <p class="hint">Or: sudo pacman -Rns arch-browser, then remove ~/.config/ArchBrowser and ~/.local/share/Arch Browser</p>
+    </section>
+
+    <section class="cta-section">
+      <a href="index.html" class="cta secondary">Back to homepage</a>
+    </section>
+  </main>
+
+  <footer>
+    <p>Arch Browser · Arch Linux only · <a href="index.html">Home</a> · <a href="install.html">Install</a></p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,11 @@
+build/
+*.o
+*.a
+*.so
+arch-browser
+*.tar.gz
+*.tar.xz
+arch-browser-1.0.0.tar.gz
+src/*.o
+.pkg/
+*.pkg.tar*

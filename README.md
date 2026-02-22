@@ -81,12 +81,12 @@ After install, Arch Browser appears in your application menu and can be launched
 
 ## Website
 
-Static site in `website/`:
+Static site in `docs/`:
 - `index.html` — main landing page
 - `install.html` — installation instructions
 - `style.css` — shared styles
 
-Open locally or serve with any static host (e.g. `python -m http.server` in `website/`).
+Open locally or serve with any static host (e.g. `python -m http.server` in `docs/`).
 
 ## Project Structure
 
@@ -97,7 +97,7 @@ browser/
 ├── arch-browser.desktop   # Application launcher entry
 ├── make-tarball.sh        # Creates tarball for makepkg
 ├── uninstall-arch-browser.sh  # Removes package + all config/data
-├── website/                  # Main site + install page
+├── docs/                     # Main site + install page
 ├── README.md              # This file
 └── src/
     ├── main.cpp        # Application entry point, Qt/WebEngine init

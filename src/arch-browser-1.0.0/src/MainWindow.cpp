@@ -142,7 +142,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(shortcutAddressBar, &QShortcut::activated, this, [this]() { m_addressBar->setFocus(); m_addressBar->selectAll(); });
 
     // Add first tab
-    addTab(QUrl("about:blank"));
+    addTab(QUrl("https://google.com"));
 
     // Connect download handler once (default profile is shared across all tabs)
     connect(QWebEngineProfile::defaultProfile(), &QWebEngineProfile::downloadRequested,
@@ -171,7 +171,7 @@ void MainWindow::onNewWindow()
 
 void MainWindow::onNewTab()
 {
-    addTab(QUrl("about:blank"));
+    addTab(QUrl("https://google.com"));
 }
 
 void MainWindow::onCloseTab(int index)
@@ -273,7 +273,7 @@ void MainWindow::onStopClicked()
 void MainWindow::onHomeClicked()
 {
     QSettings settings("ArchBrowser", "arch-browser");
-    QString home = settings.value("homePage", "about:blank").toString();
+    QString home = settings.value("homePage", "https://google.com").toString();
     navigateTo(home);
 }
 

@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     if (argc > 1) {
         mainWindow->navigateTo(QString::fromUtf8(argv[1]));
     } else {
-        mainWindow->navigateTo("about:blank");
+        mainWindow->navigateTo("https://google.com");
     }
 
     return app.exec();

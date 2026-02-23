@@ -79,6 +79,8 @@ private:
     WebView* currentWebView() const;
     void updateNavigationButtons();
     void applyTheme(const QString& theme);
+    void applyThemeToWebView(WebView* view);
+    void applyThemeToAllWebViews();
     // Basic URL validation: ensures http/https or converts search to URL
     QString validateAndNormalizeUrl(const QString& input) const;
     void loadBookmarks();

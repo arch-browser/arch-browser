@@ -158,6 +158,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     QSettings settings("ArchBrowser", "arch-browser");
     applyTheme(settings.value("theme", "System").toString());
+    applyThemeToAllWebViews();
 }
 
 MainWindow::~MainWindow()
@@ -543,6 +544,7 @@ void MainWindow::onOpenSettings()
         QSettings s("ArchBrowser", "arch-browser");
         s.setValue("theme", theme);
         applyTheme(theme);
+        applyThemeToAllWebViews();
         statusBar()->showMessage(tr("Theme changed to %1").arg(theme), 2000);
     });
 
@@ -690,6 +692,7 @@ WebView* MainWindow::addTab(const QUrl& url)
             m_stopAction->setVisible(false);
         }
         if (ok) onPageLoadedForHistory(view->url(), view->title());
+        applyThemeToWebView(view);
     });
 
     int idx = m_tabWidget->addTab(view, tr("New Tab"));
@@ -752,4 +755,69 @@ void MainWindow::applyTheme(const QString& theme)
         return;
     }
     qApp->setStyleSheet("");
+}
+
+void MainWindow::applyThemeToWebView(WebView* view)
+{
+    if (!view || !view->page()) return;
+
+    const QString theme = QSettings("ArchBrowser", "arch-browser")
+        .value("theme", "System").toString();
+    const QString scheme = view->url().scheme().toLower();
+    if (scheme != "http" && scheme != "https") return;
+
+    static const QString jsDark = R"JS(
+        (function () {
+            const id = "__archbrowser_theme_override";
+            let style = document.getElementById(id);
+            if (!style) {
+                style = document.createElement("style");
+                style.id = id;
+                (document.head || document.documentElement).appendChild(style);
+            }
+            style.textContent = `
+                :root { color-scheme: dark !important; }
+                html { background: #111 !important; filter: invert(1) hue-rotate(180deg) !important; }
+                img, video, picture, canvas, svg, iframe { filter: invert(1) hue-rotate(180deg) !important; }
+            `;
+        })();
+    )JS";
+
+    static const QString jsLight = R"JS(
+        (function () {
+            const id = "__archbrowser_theme_override";
+            let style = document.getElementById(id);
+            if (!style) {
+                style = document.createElement("style");
+                style.id = id;
+                (document.head || document.documentElement).appendChild(style);
+            }
+            style.textContent = `:root { color-scheme: light !important; }`;
+        })();
+    )JS";
+
+    static const QString jsSystem = R"JS(
+        (function () {
+            const old = document.getElementById("__archbrowser_theme_override");
+            if (old) old.remove();
+        })();
+    )JS";
+
+    if (theme == "Dark") {
+        view->page()->runJavaScript(jsDark);
+        return;
+    }
+    if (theme == "Light") {
+        view->page()->runJavaScript(jsLight);
+        return;
+    }
+    view->page()->runJavaScript(jsSystem);
+}
+
+void MainWindow::applyThemeToAllWebViews()
+{
+    for (int i = 0; i < m_tabWidget->count(); ++i) {
+        WebView* view = qobject_cast<WebView*>(m_tabWidget->widget(i));
+        if (view) applyThemeToWebView(view);
+    }
 }

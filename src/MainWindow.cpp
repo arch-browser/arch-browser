@@ -27,10 +27,7 @@
 #include <QPushButton>
 #include <QDateTime>
 #include <QLocale>
-#include <QApplication>
-#include <QComboBox>
 #include <QGroupBox>
-#include <QLabel>
 #include <QMessageBox>
 #include <QWebEngineCookieStore>
 
@@ -156,9 +153,6 @@ MainWindow::MainWindow(QWidget* parent)
     connect(QWebEngineProfile::defaultProfile(), &QWebEngineProfile::downloadRequested,
             this, &MainWindow::onDownloadRequested);
 
-    QSettings settings("ArchBrowser", "arch-browser");
-    applyTheme(settings.value("theme", "System").toString());
-    applyThemeToAllWebViews();
 }
 
 MainWindow::~MainWindow()
@@ -500,21 +494,6 @@ void MainWindow::onOpenSettings()
 
     QVBoxLayout* root = new QVBoxLayout(&dlg);
 
-    QGroupBox* appearanceGroup = new QGroupBox(tr("Appearance"), &dlg);
-    QHBoxLayout* appearanceLayout = new QHBoxLayout(appearanceGroup);
-    QLabel* themeLabel = new QLabel(tr("Theme:"), appearanceGroup);
-    QComboBox* themeCombo = new QComboBox(appearanceGroup);
-    themeCombo->addItems({tr("System"), tr("Light"), tr("Dark")});
-
-    QSettings settings("ArchBrowser", "arch-browser");
-    const QString currentTheme = settings.value("theme", "System").toString();
-    if (themeCombo->findText(currentTheme) >= 0) {
-        themeCombo->setCurrentText(currentTheme);
-    }
-
-    appearanceLayout->addWidget(themeLabel);
-    appearanceLayout->addWidget(themeCombo, 1);
-
     QGroupBox* privacyGroup = new QGroupBox(tr("Privacy"), &dlg);
     QVBoxLayout* privacyLayout = new QVBoxLayout(privacyGroup);
     QPushButton* clearHistoryBtn = new QPushButton(tr("Clear Browsing History"), privacyGroup);
@@ -534,19 +513,10 @@ void MainWindow::onOpenSettings()
     QPushButton* closeBtn = new QPushButton(tr("&Close"), &dlg);
     closeBtn->setDefault(true);
 
-    root->addWidget(appearanceGroup);
     root->addWidget(privacyGroup);
     root->addWidget(dataGroup);
     root->addStretch();
     root->addWidget(closeBtn, 0, Qt::AlignRight);
-
-    connect(themeCombo, &QComboBox::currentTextChanged, this, [this](const QString& theme) {
-        QSettings s("ArchBrowser", "arch-browser");
-        s.setValue("theme", theme);
-        applyTheme(theme);
-        applyThemeToAllWebViews();
-        statusBar()->showMessage(tr("Theme changed to %1").arg(theme), 2000);
-    });
 
     connect(clearHistoryBtn, &QPushButton::clicked, this, [this]() {
         if (QMessageBox::question(this, tr("Clear History"),
@@ -692,7 +662,6 @@ WebView* MainWindow::addTab(const QUrl& url)
             m_stopAction->setVisible(false);
         }
         if (ok) onPageLoadedForHistory(view->url(), view->title());
-        applyThemeToWebView(view);
     });
 
     int idx = m_tabWidget->addTab(view, tr("New Tab"));
@@ -732,92 +701,4 @@ QString MainWindow::validateAndNormalizeUrl(const QString& input) const
     }
 
     return "https://duckduckgo.com/?q=" + QUrl::toPercentEncoding(trimmed);
-}
-
-void MainWindow::applyTheme(const QString& theme)
-{
-    if (theme == "Dark") {
-        qApp->setStyleSheet(
-            "QWidget { background-color: #1c1f24; color: #e8eaed; }"
-            "QLineEdit, QListWidget, QTabWidget::pane, QMenu, QToolBar {"
-            "  background-color: #242830; color: #e8eaed; border: 1px solid #3a404c; }"
-            "QPushButton { background-color: #2d3440; border: 1px solid #4b5566; padding: 4px 8px; }"
-            "QPushButton:hover { background-color: #394252; }");
-        return;
-    }
-    if (theme == "Light") {
-        qApp->setStyleSheet(
-            "QWidget { background-color: #f5f7fa; color: #1f2933; }"
-            "QLineEdit, QListWidget, QTabWidget::pane, QMenu, QToolBar {"
-            "  background-color: #ffffff; color: #1f2933; border: 1px solid #cfd8e3; }"
-            "QPushButton { background-color: #eef2f7; border: 1px solid #c3ccd7; padding: 4px 8px; }"
-            "QPushButton:hover { background-color: #dde6f0; }");
-        return;
-    }
-    qApp->setStyleSheet("");
-}
-
-void MainWindow::applyThemeToWebView(WebView* view)
-{
-    if (!view || !view->page()) return;
-
-    const QString theme = QSettings("ArchBrowser", "arch-browser")
-        .value("theme", "System").toString();
-    const QString scheme = view->url().scheme().toLower();
-    if (scheme != "http" && scheme != "https") return;
-
-    static const QString jsDark = R"JS(
-        (function () {
-            const id = "__archbrowser_theme_override";
-            let style = document.getElementById(id);
-            if (!style) {
-                style = document.createElement("style");
-                style.id = id;
-                (document.head || document.documentElement).appendChild(style);
-            }
-            style.textContent = `
-                :root { color-scheme: dark !important; }
-                html { background: #111 !important; filter: invert(1) hue-rotate(180deg) !important; }
-                img, video, picture, canvas, svg, iframe { filter: invert(1) hue-rotate(180deg) !important; }
-            `;
-        })();
-    )JS";
-
-    static const QString jsLight = R"JS(
-        (function () {
-            const id = "__archbrowser_theme_override";
-            let style = document.getElementById(id);
-            if (!style) {
-                style = document.createElement("style");
-                style.id = id;
-                (document.head || document.documentElement).appendChild(style);
-            }
-            style.textContent = `:root { color-scheme: light !important; }`;
-        })();
-    )JS";
-
-    static const QString jsSystem = R"JS(
-        (function () {
-            const old = document.getElementById("__archbrowser_theme_override");
-            if (old) old.remove();
-        })();
-    )JS";
-
-    if (theme == "Dark") {
-        view->page()->runJavaScript(jsDark);
-        return;
-    }
-    if (theme == "Light") {
-        view->page()->runJavaScript(jsLight);
-        return;
-    }
-    view->page()->runJavaScript(jsSystem);
-}
-
-void MainWindow::applyThemeToAllWebViews()
-{
-    for (int i = 0; i < m_tabWidget->count(); ++i) {
-        WebView* view = qobject_cast<WebView*>(m_tabWidget->widget(i));
-        if (view) applyThemeToWebView(view);
-    }
 }

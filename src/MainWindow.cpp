@@ -27,6 +27,12 @@
 #include <QPushButton>
 #include <QDateTime>
 #include <QLocale>
+#include <QApplication>
+#include <QComboBox>
+#include <QGroupBox>
+#include <QLabel>
+#include <QMessageBox>
+#include <QWebEngineCookieStore>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -47,6 +53,8 @@ MainWindow::MainWindow(QWidget* parent)
     editMenu->addAction(tr("Zoom &In"), this, &MainWindow::onZoomIn, QKeySequence::ZoomIn);
     editMenu->addAction(tr("Zoom &Out"), this, &MainWindow::onZoomOut, QKeySequence::ZoomOut);
     editMenu->addAction(tr("Zoom &Reset"), this, &MainWindow::onZoomReset, QKeySequence(Qt::CTRL | Qt::Key_0));
+    editMenu->addSeparator();
+    editMenu->addAction(tr("&Settings..."), this, &MainWindow::onOpenSettings, QKeySequence(Qt::CTRL | Qt::Key_Comma));
 
     m_bookmarksMenu = menuBar->addMenu(tr("&Bookmarks"));
     m_bookmarksMenu->addAction(tr("Add &Bookmark"), this, &MainWindow::onAddBookmark, QKeySequence(Qt::CTRL | Qt::Key_D));
@@ -147,6 +155,9 @@ MainWindow::MainWindow(QWidget* parent)
     // Connect download handler once (default profile is shared across all tabs)
     connect(QWebEngineProfile::defaultProfile(), &QWebEngineProfile::downloadRequested,
             this, &MainWindow::onDownloadRequested);
+
+    QSettings settings("ArchBrowser", "arch-browser");
+    applyTheme(settings.value("theme", "System").toString());
 }
 
 MainWindow::~MainWindow()
@@ -480,6 +491,104 @@ void MainWindow::onClearHistory()
     statusBar()->showMessage(tr("History cleared"), 2000);
 }
 
+void MainWindow::onOpenSettings()
+{
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Settings"));
+    dlg.setMinimumSize(460, 320);
+
+    QVBoxLayout* root = new QVBoxLayout(&dlg);
+
+    QGroupBox* appearanceGroup = new QGroupBox(tr("Appearance"), &dlg);
+    QHBoxLayout* appearanceLayout = new QHBoxLayout(appearanceGroup);
+    QLabel* themeLabel = new QLabel(tr("Theme:"), appearanceGroup);
+    QComboBox* themeCombo = new QComboBox(appearanceGroup);
+    themeCombo->addItems({tr("System"), tr("Light"), tr("Dark")});
+
+    QSettings settings("ArchBrowser", "arch-browser");
+    const QString currentTheme = settings.value("theme", "System").toString();
+    if (themeCombo->findText(currentTheme) >= 0) {
+        themeCombo->setCurrentText(currentTheme);
+    }
+
+    appearanceLayout->addWidget(themeLabel);
+    appearanceLayout->addWidget(themeCombo, 1);
+
+    QGroupBox* privacyGroup = new QGroupBox(tr("Privacy"), &dlg);
+    QVBoxLayout* privacyLayout = new QVBoxLayout(privacyGroup);
+    QPushButton* clearHistoryBtn = new QPushButton(tr("Clear Browsing History"), privacyGroup);
+    QPushButton* clearCookiesBtn = new QPushButton(tr("Clear Cookies + Saved Session"), privacyGroup);
+    QPushButton* clearCacheBtn = new QPushButton(tr("Clear Cache"), privacyGroup);
+    privacyLayout->addWidget(clearHistoryBtn);
+    privacyLayout->addWidget(clearCookiesBtn);
+    privacyLayout->addWidget(clearCacheBtn);
+
+    QGroupBox* dataGroup = new QGroupBox(tr("Data"), &dlg);
+    QVBoxLayout* dataLayout = new QVBoxLayout(dataGroup);
+    QPushButton* clearBookmarksBtn = new QPushButton(tr("Clear All Bookmarks"), dataGroup);
+    QPushButton* resetHomeBtn = new QPushButton(tr("Reset Home Page to Google"), dataGroup);
+    dataLayout->addWidget(clearBookmarksBtn);
+    dataLayout->addWidget(resetHomeBtn);
+
+    QPushButton* closeBtn = new QPushButton(tr("&Close"), &dlg);
+    closeBtn->setDefault(true);
+
+    root->addWidget(appearanceGroup);
+    root->addWidget(privacyGroup);
+    root->addWidget(dataGroup);
+    root->addStretch();
+    root->addWidget(closeBtn, 0, Qt::AlignRight);
+
+    connect(themeCombo, &QComboBox::currentTextChanged, this, [this](const QString& theme) {
+        QSettings s("ArchBrowser", "arch-browser");
+        s.setValue("theme", theme);
+        applyTheme(theme);
+        statusBar()->showMessage(tr("Theme changed to %1").arg(theme), 2000);
+    });
+
+    connect(clearHistoryBtn, &QPushButton::clicked, this, [this]() {
+        if (QMessageBox::question(this, tr("Clear History"),
+                                  tr("Delete all browsing history?")) == QMessageBox::Yes) {
+            onClearHistory();
+        }
+    });
+
+    connect(clearCookiesBtn, &QPushButton::clicked, this, [this]() {
+        if (QMessageBox::question(this, tr("Clear Cookies and Session"),
+                                  tr("Delete all cookies and session data?")) == QMessageBox::Yes) {
+            QWebEngineProfile* profile = QWebEngineProfile::defaultProfile();
+            profile->cookieStore()->deleteAllCookies();
+            profile->clearHttpCache();
+            profile->clearAllVisitedLinks();
+            statusBar()->showMessage(tr("Cookies and session data cleared"), 3000);
+        }
+    });
+
+    connect(clearCacheBtn, &QPushButton::clicked, this, [this]() {
+        QWebEngineProfile::defaultProfile()->clearHttpCache();
+        statusBar()->showMessage(tr("Cache cleared"), 3000);
+    });
+
+    connect(clearBookmarksBtn, &QPushButton::clicked, this, [this]() {
+        if (QMessageBox::question(this, tr("Clear Bookmarks"),
+                                  tr("Delete all saved bookmarks?")) == QMessageBox::Yes) {
+            m_bookmarks.clear();
+            saveBookmarks();
+            rebuildBookmarksMenu();
+            statusBar()->showMessage(tr("All bookmarks cleared"), 3000);
+        }
+    });
+
+    connect(resetHomeBtn, &QPushButton::clicked, this, [this]() {
+        QSettings s("ArchBrowser", "arch-browser");
+        s.setValue("homePage", "https://google.com");
+        statusBar()->showMessage(tr("Home page reset to https://google.com"), 3000);
+    });
+
+    connect(closeBtn, &QPushButton::clicked, &dlg, &QDialog::accept);
+    dlg.exec();
+}
+
 void MainWindow::onSetHomePage()
 {
     WebView* view = currentWebView();
@@ -620,4 +729,27 @@ QString MainWindow::validateAndNormalizeUrl(const QString& input) const
     }
 
     return "https://duckduckgo.com/?q=" + QUrl::toPercentEncoding(trimmed);
+}
+
+void MainWindow::applyTheme(const QString& theme)
+{
+    if (theme == "Dark") {
+        qApp->setStyleSheet(
+            "QWidget { background-color: #1c1f24; color: #e8eaed; }"
+            "QLineEdit, QListWidget, QTabWidget::pane, QMenu, QToolBar {"
+            "  background-color: #242830; color: #e8eaed; border: 1px solid #3a404c; }"
+            "QPushButton { background-color: #2d3440; border: 1px solid #4b5566; padding: 4px 8px; }"
+            "QPushButton:hover { background-color: #394252; }");
+        return;
+    }
+    if (theme == "Light") {
+        qApp->setStyleSheet(
+            "QWidget { background-color: #f5f7fa; color: #1f2933; }"
+            "QLineEdit, QListWidget, QTabWidget::pane, QMenu, QToolBar {"
+            "  background-color: #ffffff; color: #1f2933; border: 1px solid #cfd8e3; }"
+            "QPushButton { background-color: #eef2f7; border: 1px solid #c3ccd7; padding: 4px 8px; }"
+            "QPushButton:hover { background-color: #dde6f0; }");
+        return;
+    }
+    qApp->setStyleSheet("");
 }

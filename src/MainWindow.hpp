@@ -72,11 +72,13 @@ private slots:
     void onShowHistory();
     void onClearHistory();
     void onPageLoadedForHistory(const QUrl& url, const QString& title);
+    void onOpenSettings();
 
 private:
-    WebView* addTab(const QUrl& url = QUrl("about:blank"));
+    WebView* addTab(const QUrl& url = QUrl("https://google.com"));
     WebView* currentWebView() const;
     void updateNavigationButtons();
+    void applyTheme(const QString& theme);
     // Basic URL validation: ensures http/https or converts search to URL
     QString validateAndNormalizeUrl(const QString& input) const;
     void loadBookmarks();

@@ -73,6 +73,7 @@ private slots:
     void onClearHistory();
     void onPageLoadedForHistory(const QUrl& url, const QString& title);
     void onOpenSettings();
+    void onReopenClosedTab();
 
 private:
     WebView* addTab(const QUrl& url = QUrl("https://google.com"));
@@ -102,6 +103,7 @@ private:
     struct HistoryEntry { QString url; QString title; qint64 timestamp; };
     QList<Bookmark> m_bookmarks;
     QList<HistoryEntry> m_history;
+    QList<QUrl> m_closedTabs;
     static constexpr double ZOOM_STEP = 1.2;
     static constexpr double ZOOM_MIN = 0.25;
     static constexpr double ZOOM_MAX = 5.0;

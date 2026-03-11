@@ -30,6 +30,8 @@
 #include <QGroupBox>
 #include <QMessageBox>
 #include <QWebEngineCookieStore>
+#include <QLabel>
+#include <QComboBox>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -62,6 +64,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     QMenu* historyMenu = menuBar->addMenu(tr("&History"));
     historyMenu->addAction(tr("Show &History"), this, &MainWindow::onShowHistory, QKeySequence(Qt::CTRL | Qt::Key_H));
+    historyMenu->addAction(tr("Reopen Closed &Tab"), this, &MainWindow::onReopenClosedTab, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_T));
     historyMenu->addAction(tr("&Clear History"), this, &MainWindow::onClearHistory);
 
     loadBookmarks();
@@ -184,6 +187,16 @@ void MainWindow::onCloseTab(int index)
 {
     if (m_tabWidget->count() > 1) {
         QWidget* w = m_tabWidget->widget(index);
+        if (WebView* view = qobject_cast<WebView*>(w)) {
+            const QUrl url = view->url();
+            if (!url.isEmpty() && url.toString() != "about:blank") {
+                m_closedTabs.prepend(url);
+                const int MAX_CLOSED_TABS = 10;
+                while (m_closedTabs.size() > MAX_CLOSED_TABS) {
+                    m_closedTabs.removeLast();
+                }
+            }
+        }
         m_tabWidget->removeTab(index);
         w->deleteLater();
     }
@@ -486,13 +499,41 @@ void MainWindow::onClearHistory()
     statusBar()->showMessage(tr("History cleared"), 2000);
 }
 
+void MainWindow::onReopenClosedTab()
+{
+    if (m_closedTabs.isEmpty()) {
+        statusBar()->showMessage(tr("No recently closed tabs"), 2000);
+        return;
+    }
+
+    const QUrl url = m_closedTabs.takeFirst();
+    addTab(url);
+}
+
 void MainWindow::onOpenSettings()
 {
     QDialog dlg(this);
     dlg.setWindowTitle(tr("Settings"));
-    dlg.setMinimumSize(460, 320);
+    dlg.setMinimumSize(460, 340);
 
     QVBoxLayout* root = new QVBoxLayout(&dlg);
+
+    QGroupBox* searchGroup = new QGroupBox(tr("Search && Address Bar"), &dlg);
+    QVBoxLayout* searchLayout = new QVBoxLayout(searchGroup);
+    QLabel* searchLabel = new QLabel(tr("Default search engine for address bar searches:"), searchGroup);
+    QComboBox* searchCombo = new QComboBox(searchGroup);
+    searchCombo->addItem(tr("DuckDuckGo (default)"), "duckduckgo");
+    searchCombo->addItem(tr("Google"), "google");
+    searchCombo->addItem(tr("Brave Search"), "brave");
+
+    QSettings settings("ArchBrowser", "arch-browser");
+    const QString currentEngine = settings.value("searchEngine", "duckduckgo").toString();
+    int searchIdx = searchCombo->findData(currentEngine);
+    if (searchIdx < 0) searchIdx = 0;
+    searchCombo->setCurrentIndex(searchIdx);
+
+    searchLayout->addWidget(searchLabel);
+    searchLayout->addWidget(searchCombo);
 
     QGroupBox* privacyGroup = new QGroupBox(tr("Privacy"), &dlg);
     QVBoxLayout* privacyLayout = new QVBoxLayout(privacyGroup);
@@ -513,6 +554,7 @@ void MainWindow::onOpenSettings()
     QPushButton* closeBtn = new QPushButton(tr("&Close"), &dlg);
     closeBtn->setDefault(true);
 
+    root->addWidget(searchGroup);
     root->addWidget(privacyGroup);
     root->addWidget(dataGroup);
     root->addStretch();
@@ -555,6 +597,11 @@ void MainWindow::onOpenSettings()
         QSettings s("ArchBrowser", "arch-browser");
         s.setValue("homePage", "https://google.com");
         statusBar()->showMessage(tr("Home page reset to https://google.com"), 3000);
+    });
+
+    connect(searchCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [searchCombo]() {
+        QSettings s("ArchBrowser", "arch-browser");
+        s.setValue("searchEngine", searchCombo->currentData().toString());
     });
 
     connect(closeBtn, &QPushButton::clicked, &dlg, &QDialog::accept);
@@ -700,5 +747,16 @@ QString MainWindow::validateAndNormalizeUrl(const QString& input) const
         return "https://" + trimmed;
     }
 
-    return "https://duckduckgo.com/?q=" + QUrl::toPercentEncoding(trimmed);
+    QSettings settings("ArchBrowser", "arch-browser");
+    const QString engine = settings.value("searchEngine", "duckduckgo").toString();
+    QByteArray encoded = QUrl::toPercentEncoding(trimmed);
+
+    if (engine == "google") {
+        return "https://www.google.com/search?q=" + encoded;
+    } else if (engine == "brave") {
+        return "https://search.brave.com/search?q=" + encoded;
+    }
+
+    // Default to DuckDuckGo
+    return "https://duckduckgo.com/?q=" + encoded;
 }

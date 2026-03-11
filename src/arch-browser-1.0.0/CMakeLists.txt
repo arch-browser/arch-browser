@@ -45,3 +45,6 @@ install(TARGETS arch-browser DESTINATION bin)
 
 # Desktop entry for application launcher
 install(FILES arch-browser.desktop DESTINATION share/applications)
+
+# Icon for desktop environments (hicolor theme)
+install(FILES icons/arch-browser.svg DESTINATION share/icons/hicolor/scalable/apps)

@@ -7,11 +7,12 @@ A native Chromium-based web browser for **Arch Linux only**, built with C++, Qt5
 - **Tabs**: Open, close, and switch between tabs (Ctrl+T, Ctrl+W)
 - **Navigation**: Back, forward, refresh, stop loading, home
 - **Address bar**: URL entry with basic validation (adds `https://`, search via DuckDuckGo); Ctrl+L to focus
+- **Search engine choice**: Pick DuckDuckGo, Google, or Brave as the default search engine for address bar searches
 - **Find in page**: Ctrl+F to search and highlight text on the current page
 - **Zoom**: Zoom in (Ctrl++), zoom out (Ctrl+-), reset (Ctrl+0)
 - **Bookmarks**: Add bookmark (Ctrl+D), set homepage, persistent storage
 - **Cookies & sessions**: Persistent storage—log in to sites (e.g. YouTube) and stay signed in after closing the browser
-- **History**: Browsing history (Ctrl+H), clear history, double-click to revisit
+- **History**: Browsing history (Ctrl+H), reopen last closed tab (Ctrl+Shift+T), clear history, double-click to revisit
 - **HTTPS**: Full support via Chromium
 - **Multiple windows**: File → New Window
 - **Downloads**: Save dialog with default location
@@ -60,10 +61,33 @@ makepkg -si
 - `-s` installs dependencies with pacman
 - `-i` installs the built package
 
+## Uninstall (remove package + all config/data)
+
+```bash
+./uninstall-arch-browser.sh
+```
+
+Or manually:
+```bash
+sudo pacman -Rns arch-browser
+rm -rf ~/.config/ArchBrowser ~/.local/share/Arch\ Browser
+```
+
+## Launch
+
 After install, Arch Browser appears in your application menu and can be launched with:
 - **Application launcher**: search for "Arch Browser"
 - **Terminal**: `arch-browser`
 - **URL handling**: `arch-browser https://example.com`
+
+## Website
+
+Static site in `docs/`:
+- `index.html` — main landing page
+- `install.html` — installation instructions
+- `style.css` — shared styles
+
+Open locally or serve with any static host (e.g. `python -m http.server` in `docs/`).
 
 ## Project Structure
 
@@ -73,6 +97,8 @@ browser/
 ├── PKGBUILD               # Arch Linux package recipe
 ├── arch-browser.desktop   # Application launcher entry
 ├── make-tarball.sh        # Creates tarball for makepkg
+├── uninstall-arch-browser.sh  # Removes package + all config/data
+├── docs/                     # Main site + install page
 ├── README.md              # This file
 └── src/
     ├── main.cpp        # Application entry point, Qt/WebEngine init

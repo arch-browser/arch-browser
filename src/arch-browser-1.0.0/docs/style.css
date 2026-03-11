@@ -1,0 +1,248 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0f0f12;
+  --bg-card: #18181c;
+  --text: #e8e8ec;
+  --text-muted: #9898a0;
+  --accent: #1793d1;
+  --accent-hover: #4ba3d8;
+  --code-bg: #1e1e24;
+  --border: #2a2a30;
+}
+
+body {
+  font-family: 'Outfit', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+nav {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.nav-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: var(--accent);
+}
+
+main {
+  flex: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  width: 100%;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* CTA */
+.cta {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.75rem 1.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+.cta:hover {
+  background: var(--accent-hover);
+}
+
+.cta.secondary {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.cta.secondary:hover {
+  background: var(--border);
+}
+
+/* Features */
+.features {
+  padding: 3rem 0;
+}
+
+.features h2,
+.tech h2,
+.page-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.feature-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.feature-grid li {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.feature-icon {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.feature-grid h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.feature-grid p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Tech */
+.tech {
+  padding: 2rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.tech p {
+  color: var(--text-muted);
+}
+
+/* Install page */
+.page-header {
+  margin-bottom: 3rem;
+}
+
+.page-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.page-header p {
+  color: var(--text-muted);
+}
+
+.install-section {
+  margin-bottom: 2.5rem;
+}
+
+.install-section.alt {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+}
+
+.install-section h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.install-section pre {
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+}
+
+.install-section code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.install-section .hint {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.install-section p {
+  margin-bottom: 0.5rem;
+}
+
+/* CTA section */
+.cta-section {
+  padding: 3rem 0;
+  text-align: center;
+}
+
+/* Footer */
+footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+footer p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Arch Browser — Native Chromium browser for Arch Linux</title>
+  <link rel="icon" type="image/svg+xml" href="arch-browser.svg">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +20,9 @@
 
   <main>
     <section class="hero">
+      <div class="hero-icon-wrap">
+        <img src="arch-browser.svg" alt="Arch Browser icon" class="hero-icon">
+      </div>
       <h1>A native browser for Arch Linux</h1>
       <p>Chromium engine, Qt GUI, no web stack for the chrome. Fast, minimal, built for Arch.</p>
       <a href="install.html" class="cta">Get Arch Browser</a>
@@ -35,7 +39,7 @@
         <li>
           <span class="feature-icon">🔖</span>
           <h3>Bookmarks &amp; History</h3>
-          <p>Persistent bookmarks, browsing history, manage both</p>
+          <p>Persistent bookmarks, browsing history, reopen closed tabs</p>
         </li>
         <li>
           <span class="feature-icon">🔐</span>
@@ -44,8 +48,8 @@
         </li>
         <li>
           <span class="feature-icon">🔍</span>
-          <h3>Find &amp; Zoom</h3>
-          <p>Find in page (Ctrl+F), zoom in/out/reset</p>
+          <h3>Search &amp; Zoom</h3>
+          <p>Configurable search engine (DuckDuckGo, Google, Brave), find in page, zoom in/out/reset</p>
         </li>
       </ul>
     </section>
